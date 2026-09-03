@@ -43,13 +43,25 @@ import com.sakatoon.traductor.data.translation.TranslationState
 import com.sakatoon.traductor.viewmodel.TranslationViewModel
 import java.util.Locale
 
-// Custom Dark Colors matching Google Translate Dark Theme in the image
-private val AppBackground = Color(0xFF1E1E1E)
-private val TopBarBackground = Color(0xFF252526)
-private val LanguageBarBackground = Color(0xFF2C2C2E)
-private val CardBackground = Color(0xFF242426)
-private val TextWhite = Color(0xFFE3E3E3)
-private val TextMuted = Color(0xFF9E9E9E)
+// Dynamic Colors adapted to active MaterialTheme (Light or Dark)
+@Composable
+private fun appBackgroundColor() = MaterialTheme.colorScheme.background
+
+@Composable
+private fun topBarBackgroundColor() = if (MaterialTheme.colorScheme.background == Color(0xFF1E1E1E) || androidx.compose.foundation.isSystemInDarkTheme()) Color(0xFF252526) else MaterialTheme.colorScheme.surfaceVariant
+
+@Composable
+private fun languageBarBackgroundColor() = if (MaterialTheme.colorScheme.background == Color(0xFF1E1E1E) || androidx.compose.foundation.isSystemInDarkTheme()) Color(0xFF2C2C2E) else MaterialTheme.colorScheme.surfaceVariant
+
+@Composable
+private fun cardBackgroundColor() = MaterialTheme.colorScheme.surface
+
+@Composable
+private fun textPrimaryColor() = MaterialTheme.colorScheme.onSurface
+
+@Composable
+private fun textMutedColor() = MaterialTheme.colorScheme.onSurfaceVariant
+
 private val AccentBlue = Color(0xFF3880EC)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,9 +96,9 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
     }
 
     Scaffold(
-        containerColor = AppBackground,
+        containerColor = appBackgroundColor(),
         topBar = {
-            Surface(color = TopBarBackground) {
+            Surface(color = topBarBackgroundColor()) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -100,7 +112,7 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                         text = "Traductor",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = TextWhite
+                        color = textPrimaryColor()
                     )
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -109,21 +121,21 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                                 Icon(
                                     imageVector = Icons.Default.MoreVert,
                                     contentDescription = "Opciones",
-                                    tint = TextWhite
+                                    tint = textPrimaryColor()
                                 )
                             }
                             DropdownMenu(
                                 expanded = showMenu,
                                 onDismissRequest = { showMenu = false },
-                                modifier = Modifier.background(CardBackground)
+                                modifier = Modifier.background(cardBackgroundColor())
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text("Configuración", color = TextWhite) },
+                                    text = { Text("Configuración", color = textPrimaryColor()) },
                                     onClick = {
                                         showMenu = false
                                         onNavigateToSettings()
                                     },
-                                    leadingIcon = { Icon(Icons.Default.Settings, null, tint = TextWhite) }
+                                    leadingIcon = { Icon(Icons.Default.Settings, null, tint = textPrimaryColor()) }
                                 )
                             }
                         }
@@ -160,7 +172,7 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                     .fillMaxWidth()
                     .height(52.dp),
                 shape = RoundedCornerShape(26.dp),
-                color = LanguageBarBackground
+                color = languageBarBackgroundColor()
             ) {
                 Row(
                     modifier = Modifier.fillMaxSize(),
@@ -176,7 +188,7 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                     ) {
                         Text(
                             text = languageName(sourceLang),
-                            color = TextWhite,
+                            color = textPrimaryColor(),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
                             maxLines = 1,
@@ -191,7 +203,7 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                         Icon(
                             imageVector = Icons.Default.SwapHoriz,
                             contentDescription = "Intercambiar",
-                            tint = TextMuted
+                            tint = textMutedColor()
                         )
                     }
 
@@ -204,7 +216,7 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                     ) {
                         Text(
                             text = languageName(targetLang),
-                            color = TextWhite,
+                            color = textPrimaryColor(),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
                             maxLines = 1,
@@ -222,7 +234,7 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                     .fillMaxWidth()
                     .weight(1f),
                 shape = RoundedCornerShape(20.dp),
-                color = CardBackground
+                color = cardBackgroundColor()
             ) {
                 Column(
                     modifier = Modifier
@@ -237,7 +249,7 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                     ) {
                         Text(
                             text = "Detectar idioma",
-                            color = TextMuted,
+                            color = textMutedColor(),
                             fontSize = 14.sp
                         )
 
@@ -256,7 +268,7 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                                 Icon(
                                     imageVector = Icons.Default.Mic,
                                     contentDescription = "Micrófono",
-                                    tint = if (speechState is SpeechState.Listening) Color.Red else TextMuted
+                                    tint = if (speechState is SpeechState.Listening) Color.Red else textMutedColor()
                                 )
                             }
 
@@ -268,7 +280,7 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                                     Icon(
                                         imageVector = Icons.Default.Close,
                                         contentDescription = "Borrar",
-                                        tint = TextMuted
+                                        tint = textMutedColor()
                                     )
                                 }
                             }
@@ -286,7 +298,7 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                         if (sourceText.isEmpty()) {
                             Text(
                                 text = "Escribe o usa el micrófono…",
-                                color = TextMuted,
+                                color = textMutedColor(),
                                 fontSize = 22.sp
                             )
                         }
@@ -298,7 +310,7 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                                 viewModel.translate()
                             },
                             textStyle = TextStyle(
-                                color = TextWhite,
+                                color = textPrimaryColor(),
                                 fontSize = 22.sp,
                                 fontWeight = FontWeight.Normal,
                                 lineHeight = 28.sp
@@ -318,7 +330,7 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                     .fillMaxWidth()
                     .weight(1f),
                 shape = RoundedCornerShape(20.dp),
-                color = CardBackground
+                color = cardBackgroundColor()
             ) {
                 Column(
                     modifier = Modifier
@@ -335,7 +347,7 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                             is TranslationState.Success -> {
                                 Text(
                                     text = (translationState as TranslationState.Success).translatedText,
-                                    color = TextWhite,
+                                    color = textPrimaryColor(),
                                     fontSize = 22.sp,
                                     lineHeight = 28.sp
                                 )
@@ -358,14 +370,14 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                             is TranslationState.ModelNotDownloaded -> {
                                 Text(
                                     text = "Descarga el paquete de idioma en Configuración.",
-                                    color = TextMuted,
+                                    color = textMutedColor(),
                                     fontSize = 16.sp
                                 )
                             }
                             else -> {
                                 Text(
                                     text = "La traducción aparecerá aquí",
-                                    color = TextMuted.copy(alpha = 0.6f),
+                                    color = textMutedColor().copy(alpha = 0.6f),
                                     fontSize = 22.sp
                                 )
                             }
@@ -390,7 +402,7 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                                 contentDescription = "Escuchar original",
-                                tint = TextMuted
+                                tint = textMutedColor()
                             )
                         }
 

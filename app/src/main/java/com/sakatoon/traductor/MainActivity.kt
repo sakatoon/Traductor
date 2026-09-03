@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -33,7 +35,9 @@ class MainActivity : ComponentActivity() {
         val ttsManager = TextToSpeechManager(this)
 
         setContent {
-            TraductorTheme {
+            val isDarkMode by settingsRepository.isDarkMode.collectAsState(initial = true)
+
+            TraductorTheme(darkTheme = isDarkMode) {
                 val navController = rememberNavController()
                 
                 NavHost(navController = navController, startDestination = "main") {
@@ -54,7 +58,7 @@ class MainActivity : ComponentActivity() {
                         val viewModel: SettingsViewModel = viewModel(
                             factory = object : ViewModelProvider.Factory {
                                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                                    return SettingsViewModel(repository) as T
+                                    return SettingsViewModel(repository, settingsRepository) as T
                                 }
                             }
                         )

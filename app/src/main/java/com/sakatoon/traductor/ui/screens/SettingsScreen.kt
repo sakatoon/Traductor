@@ -68,6 +68,31 @@ fun SettingsScreen(
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
             item {
+                val isDarkMode by viewModel.isDarkMode.collectAsState()
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 1.dp
+                ) {
+                    ListItem(
+                        headlineContent = {
+                            Text("Modo Oscuro", fontWeight = FontWeight.Bold)
+                        },
+                        supportingContent = {
+                            Text("Cambiar tema claro / oscuro", fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary)
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = isDarkMode,
+                                onCheckedChange = { viewModel.setDarkMode(it) }
+                            )
+                        },
+                        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+                    )
+                }
+            }
+            item {
                 Column(Modifier.padding(horizontal = 4.dp, vertical = 8.dp)) {
                     Text("Descarga solo los idiomas que necesitas", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(4.dp))
