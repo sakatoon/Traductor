@@ -8,10 +8,16 @@ import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.*
@@ -19,17 +25,32 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.google.mlkit.nl.translate.TranslateLanguage
+import com.sakatoon.traductor.R
 import com.sakatoon.traductor.data.speech.SpeechState
 import com.sakatoon.traductor.data.translation.TranslationState
 import com.sakatoon.traductor.viewmodel.TranslationViewModel
 import java.util.Locale
+
+// Custom Dark Colors matching Google Translate Dark Theme in the image
+private val AppBackground = Color(0xFF1E1E1E)
+private val TopBarBackground = Color(0xFF252526)
+private val LanguageBarBackground = Color(0xFF2C2C2E)
+private val CardBackground = Color(0xFF242426)
+private val TextWhite = Color(0xFFE3E3E3)
+private val TextMuted = Color(0xFF9E9E9E)
+private val AccentBlue = Color(0xFF3880EC)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,9 +63,14 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
     val showWelcome by viewModel.showFirstLaunchDialog.collectAsState()
     val context = LocalContext.current
     var picker by remember { mutableStateOf<LanguagePicker?>(null) }
-    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { if (it) viewModel.startListening() }
+    var showMenu by remember { mutableStateOf(false) }
+    
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { 
+        if (it) viewModel.startListening() 
+    }
 
     if (showWelcome) WelcomeDialog(viewModel, onNavigateToSettings)
+    
     picker?.let { selection ->
         LanguagePickerDialog(
             title = if (selection == LanguagePicker.Source) "Idioma de origen" else "Idioma de destino",
@@ -57,62 +83,368 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
         )
     }
 
-    Scaffold(topBar = {
-        TopAppBar(
-            title = { Column { Text("Traductor", fontWeight = FontWeight.Bold); Text("Rápido, privado y sin conexión", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) } },
-            actions = {
-                IconButton(onClick = onNavigateToSettings) { Icon(Icons.Default.Settings, "Abrir configuración") }
-            }
-        )
-    }) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.primary) {
-                    Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        LanguageButton(sourceLang, Modifier.weight(1f)) { picker = LanguagePicker.Source }
-                        FilledIconButton(
-                            onClick = viewModel::swapLanguages,
-                            colors = IconButtonDefaults.filledIconButtonColors(
-                                containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.16f),
-                                contentColor = MaterialTheme.colorScheme.onPrimary
+    Scaffold(
+        containerColor = AppBackground,
+        topBar = {
+            Surface(color = TopBarBackground) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .height(60.dp)
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Traductor",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextWhite
+                    )
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box {
+                            IconButton(onClick = { showMenu = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.MoreVert,
+                                    contentDescription = "Opciones",
+                                    tint = TextWhite
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = showMenu,
+                                onDismissRequest = { showMenu = false },
+                                modifier = Modifier.background(CardBackground)
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Configuración", color = TextWhite) },
+                                    onClick = {
+                                        showMenu = false
+                                        onNavigateToSettings()
+                                    },
+                                    leadingIcon = { Icon(Icons.Default.Settings, null, tint = TextWhite) }
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // User profile avatar like in the image
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .clickable { onNavigateToSettings() }
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.dev_logo),
+                                contentDescription = "Perfil Creador",
+                                modifier = Modifier.fillMaxSize()
                             )
-                        ) { Icon(Icons.Default.SwapHoriz, "Intercambiar idiomas") }
-                        LanguageButton(targetLang, Modifier.weight(1f)) { picker = LanguagePicker.Target }
+                        }
                     }
                 }
             }
-            item {
-                ElevatedCard(shape = RoundedCornerShape(20.dp)) {
-                    Column(Modifier.padding(16.dp)) {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Texto original", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-                            if (sourceText.isNotEmpty()) IconButton(onClick = { viewModel.onSourceTextChange("") }) { Icon(Icons.Default.Close, "Borrar texto") }
-                        }
-                        OutlinedTextField(
-                            value = sourceText,
-                            onValueChange = viewModel::onSourceTextChange,
-                            placeholder = { Text("Escribe o usa el micrófono…") },
-                            modifier = Modifier.fillMaxWidth().heightIn(min = 150.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            trailingIcon = { IconButton(onClick = {
-                                val permission = Manifest.permission.RECORD_AUDIO
-                                if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) viewModel.startListening() else permissionLauncher.launch(permission)
-                            }) { Icon(Icons.Default.Mic, if (speechState is SpeechState.Listening) "Escuchando" else "Dictar texto", tint = if (speechState is SpeechState.Listening) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary) } }
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            // Language Selection Selector Bar (matching the design bar in the image)
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(26.dp),
+                color = LanguageBarBackground
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clickable { picker = LanguagePicker.Source },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = languageName(sourceLang),
+                            color = TextWhite,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
+                    IconButton(
+                        onClick = viewModel::swapLanguages,
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.SwapHoriz,
+                            contentDescription = "Intercambiar",
+                            tint = TextMuted
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clickable { picker = LanguagePicker.Target },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = languageName(targetLang),
+                            color = TextWhite,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
             }
-            item {
-                Button(onClick = viewModel::translate, enabled = sourceText.isNotBlank() && translationState !is TranslationState.Translating, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(16.dp)) {
-                    if (translationState is TranslationState.Translating) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
-                    else { Icon(Icons.Default.Translate, null); Spacer(Modifier.width(8.dp)); Text("Traducir", fontWeight = FontWeight.Bold) }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Source Input Card (Top Card in image)
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                shape = RoundedCornerShape(20.dp),
+                color = CardBackground
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    // Header row: "Detectar idioma", mic button, close button
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Detectar idioma",
+                            color = TextMuted,
+                            fontSize = 14.sp
+                        )
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(
+                                onClick = {
+                                    val permission = Manifest.permission.RECORD_AUDIO
+                                    if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) {
+                                        viewModel.startListening()
+                                    } else {
+                                        permissionLauncher.launch(permission)
+                                    }
+                                },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Mic,
+                                    contentDescription = "Micrófono",
+                                    tint = if (speechState is SpeechState.Listening) Color.Red else TextMuted
+                                )
+                            }
+
+                            if (sourceText.isNotEmpty()) {
+                                IconButton(
+                                    onClick = { viewModel.onSourceTextChange("") },
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Borrar",
+                                        tint = TextMuted
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Text Input Field
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        if (sourceText.isEmpty()) {
+                            Text(
+                                text = "Escribe o usa el micrófono…",
+                                color = TextMuted,
+                                fontSize = 22.sp
+                            )
+                        }
+
+                        BasicTextField(
+                            value = sourceText,
+                            onValueChange = {
+                                viewModel.onSourceTextChange(it)
+                                viewModel.translate()
+                            },
+                            textStyle = TextStyle(
+                                color = TextWhite,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Normal,
+                                lineHeight = 28.sp
+                            ),
+                            cursorBrush = SolidColor(AccentBlue),
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
             }
-            item { TranslationResultCard(translationState, targetLang, viewModel, context) }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Translated Result Card (Bottom Card in image)
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                shape = RoundedCornerShape(20.dp),
+                color = CardBackground
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        when (translationState) {
+                            is TranslationState.Success -> {
+                                Text(
+                                    text = (translationState as TranslationState.Success).translatedText,
+                                    color = TextWhite,
+                                    fontSize = 22.sp,
+                                    lineHeight = 28.sp
+                                )
+                            }
+                            is TranslationState.Translating -> {
+                                CircularProgressIndicator(
+                                    color = AccentBlue,
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .align(Alignment.Center)
+                                )
+                            }
+                            is TranslationState.Error -> {
+                                Text(
+                                    text = (translationState as TranslationState.Error).message,
+                                    color = MaterialTheme.colorScheme.error,
+                                    fontSize = 16.sp
+                                )
+                            }
+                            is TranslationState.ModelNotDownloaded -> {
+                                Text(
+                                    text = "Descarga el paquete de idioma en Configuración.",
+                                    color = TextMuted,
+                                    fontSize = 16.sp
+                                )
+                            }
+                            else -> {
+                                Text(
+                                    text = "La traducción aparecerá aquí",
+                                    color = TextMuted.copy(alpha = 0.6f),
+                                    fontSize = 22.sp
+                                )
+                            }
+                        }
+                    }
+
+                    // Action buttons at the bottom matching image design (Volume / Speaker and Copy in rounded blue/gray squares)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Speaker for source or target text
+                        IconButton(
+                            onClick = {
+                                if (sourceText.isNotEmpty()) {
+                                    viewModel.speak(sourceText, sourceLang)
+                                }
+                            },
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                                contentDescription = "Escuchar original",
+                                tint = TextMuted
+                            )
+                        }
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            // Speaker Blue Button
+                            Surface(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable {
+                                        if (translationState is TranslationState.Success) {
+                                            viewModel.speak((translationState as TranslationState.Success).translatedText, targetLang)
+                                        }
+                                    },
+                                color = AccentBlue
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                                        contentDescription = "Escuchar traducción",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
+                            }
+
+                            // Copy Blue Button
+                            Surface(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable {
+                                        if (translationState is TranslationState.Success) {
+                                            val textToCopy = (translationState as TranslationState.Success).translatedText
+                                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                            clipboard.setPrimaryClip(ClipData.newPlainText("Traducción", textToCopy))
+                                            Toast.makeText(context, "Traducción copiada", Toast.LENGTH_SHORT).show()
+                                        }
+                                    },
+                                color = AccentBlue
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.Default.ContentCopy,
+                                        contentDescription = "Copiar traducción",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -120,76 +452,41 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
 private enum class LanguagePicker { Source, Target }
 
 @Composable
-private fun LanguageButton(code: String, modifier: Modifier, onClick: () -> Unit) {
-    TextButton(
-        onClick = onClick,
-        modifier = modifier,
-        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onPrimary)
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(languageName(code), maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Bold)
-            Text(code.uppercase(), style = MaterialTheme.typography.labelSmall)
-        }
-        Icon(Icons.Default.ArrowDropDown, null)
-    }
-}
-
-@Composable
 private fun LanguagePickerDialog(title: String, selectedCode: String, onSelect: (String) -> Unit, onDismiss: () -> Unit) {
     val languages = remember { TranslateLanguage.getAllLanguages().sortedBy(::languageName) }
-    AlertDialog(onDismissRequest = onDismiss, title = { Text(title) }, text = {
-        LazyColumn(Modifier.heightIn(max = 420.dp)) {
-            items(languages) { code ->
-                ListItem(
-                    headlineContent = { Text(languageName(code)) }, supportingContent = { Text(code.uppercase()) },
-                    trailingContent = { if (code == selectedCode) Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.primary) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                HorizontalDivider()
-            }
-        }
-    }, confirmButton = { TextButton(onClick = onDismiss) { Text("Cerrar") } })
-}
-
-@Composable
-private fun TranslationResultCard(state: TranslationState, targetLang: String, viewModel: TranslationViewModel, context: Context) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth().heightIn(min = 190.dp), shape = RoundedCornerShape(20.dp)) {
-        Column(Modifier.padding(20.dp)) {
-            Text("Traducción", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.height(12.dp))
-            when (state) {
-                is TranslationState.Success -> {
-                    Text(state.translatedText, style = MaterialTheme.typography.bodyLarge)
-                    Spacer(Modifier.height(16.dp))
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        IconButton(onClick = {
-                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                            clipboard.setPrimaryClip(ClipData.newPlainText("Traducción", state.translatedText))
-                            Toast.makeText(context, "Traducción copiada", Toast.LENGTH_SHORT).show()
-                        }) { Icon(Icons.Default.ContentCopy, "Copiar traducción") }
-                        IconButton(onClick = { viewModel.speak(state.translatedText, targetLang) }) { Icon(Icons.AutoMirrored.Filled.VolumeUp, "Escuchar traducción") }
-                    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title, color = TextWhite) },
+        containerColor = CardBackground,
+        text = {
+            LazyColumn(Modifier.heightIn(max = 420.dp)) {
+                items(languages) { code ->
+                    ListItem(
+                        headlineContent = { Text(languageName(code), color = TextWhite) },
+                        supportingContent = { Text(code.uppercase(), color = TextMuted) },
+                        trailingContent = { if (code == selectedCode) Icon(Icons.Default.Check, null, tint = AccentBlue) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(code) }
+                    )
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
                 }
-                is TranslationState.Error -> StatusMessage(Icons.Default.ErrorOutline, "No se pudo traducir", state.message, MaterialTheme.colorScheme.error)
-                is TranslationState.ModelNotDownloaded -> StatusMessage(Icons.Default.Download, "Falta descargar el idioma", "Abre Configuración y descarga el modelo necesario.", MaterialTheme.colorScheme.error)
-                is TranslationState.Translating -> Box(Modifier.fillMaxWidth().height(110.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                else -> StatusMessage(Icons.Default.AutoAwesome, "Tu traducción aparecerá aquí", "Elige los idiomas, escribe el texto y pulsa Traducir.", MaterialTheme.colorScheme.primary)
             }
-        }
-    }
-}
-
-@Composable
-private fun StatusMessage(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, detail: String, tint: Color) {
-    Row(verticalAlignment = Alignment.Top) { Icon(icon, null, tint = tint); Spacer(Modifier.width(12.dp)); Column { Text(title, fontWeight = FontWeight.SemiBold); Spacer(Modifier.height(4.dp)); Text(detail, color = MaterialTheme.colorScheme.onSurfaceVariant) } }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Cerrar", color = AccentBlue) } }
+    )
 }
 
 @Composable
 private fun WelcomeDialog(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit) = AlertDialog(
-    onDismissRequest = viewModel::dismissFirstLaunchDialog, icon = { Icon(Icons.Default.Translate, null) },
-    title = { Text("Todo listo para traducir") }, text = { Text("Descarga los idiomas que necesites para traducir incluso sin conexión.") },
-    confirmButton = { TextButton(onClick = { viewModel.dismissFirstLaunchDialog(); onNavigateToSettings() }) { Text("Descargar idiomas") } },
-    dismissButton = { TextButton(onClick = viewModel::dismissFirstLaunchDialog) { Text("Más tarde") } }
+    onDismissRequest = viewModel::dismissFirstLaunchDialog,
+    icon = { Icon(Icons.Default.Translate, null, tint = AccentBlue) },
+    title = { Text("Todo listo para traducir", color = TextWhite) },
+    text = { Text("Descarga los idiomas que necesites para traducir incluso sin conexión.", color = TextMuted) },
+    containerColor = CardBackground,
+    confirmButton = { TextButton(onClick = { viewModel.dismissFirstLaunchDialog(); onNavigateToSettings() }) { Text("Descargar idiomas", color = AccentBlue) } },
+    dismissButton = { TextButton(onClick = viewModel::dismissFirstLaunchDialog) { Text("Más tarde", color = TextMuted) } }
 )
 
 internal fun languageName(code: String): String = Locale.forLanguageTag(code).getDisplayName(Locale.forLanguageTag("es")).replaceFirstChar { it.uppercase() }

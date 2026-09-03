@@ -6,22 +6,23 @@
 
 ---
 
-## 📱 Capturas de Pantalla (App en Funcionamiento)
+## 📱 Captura de Pantalla de la Interfaz
 
 <p align="center">
-  <img src="app/src/main/res/drawable/traductor_live_screenshot.png" alt="Traductor App Funcionando" width="400"/>
+  <img src="app/src/main/res/drawable/traductor_exact_screenshot.png" alt="Traductor App Interface" width="380"/>
 </p>
 
 ---
 
 ## 🌟 Características Destacadas
 
+- 🎨 **Diseño idéntico a la interfaz oficial:** Barra de navegación superior con avatar del desarrollador, selector de idioma tipo píldora (`Español ⇆ Inglés`) y tarjetas independientes para el texto original y la traducción.
 - ⚡ **Traducción Instantánea sin Conexión:** Descarga los modelos de los idiomas que necesites directamente en tu dispositivo y traduce sin consumir datos ni requerir conexión a internet.
-- 🎙️ **Reconocimiento y Dictado por Voz (STT):** Dicta el texto con tu voz usando el micrófono integrado.
-- 🔊 **Síntesis de Voz (TTS):** Escucha la pronunciación correcta de los textos traducidos.
+- 🎙️ **Reconocimiento y Dictado por Voz (STT):** Dicta el texto directamente con el icono de micrófono.
+- 🔊 **Síntesis de Voz (TTS):** Escucha la pronunciación del texto original y traducido mediante el botón azul flotante.
+- 📋 **Acciones Rápidas:** Copiado inmediato de la traducción al portapapeles con un solo toque.
 - ⚙️ **Gestor de Idiomas:** Descarga y administra fácilmente los paquetes de idioma en tu dispositivo desde la pantalla de Configuración.
-- 🎨 **Diseño Moderno:** Desarrollada completamente con **Jetpack Compose** y **Material Design 3**, adaptada para pantalla táctil y experiencia fluida.
-- 👨‍💻 **Acerca del Creador:** Incluye pantalla con información completa del desarrollador y marca registrada de **SakaToOn**.
+- 👨‍💻 **Acerca del Creador:** Pantalla con la información oficial y marca registrada de **SakaToOn**.
 
 ---
 
@@ -37,7 +38,7 @@
 
 ## 📱 Requisitos
 
-- Android 7.0 (API Nivel 24) o superior.
+- Android 7.0 (API Nivel 24) or superior.
 - Conexión a Internet (únicamente para descargar los modelos de idioma iniciales).
 
 ---
