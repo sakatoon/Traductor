@@ -471,25 +471,50 @@ private fun LanguagePickerDialog(title: String, selectedCode: String, onSelect: 
     val languages = remember { TranslateLanguage.getAllLanguages().sortedBy(::languageName) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title, color = textPrimaryColor()) },
+        title = { Text(title, color = textPrimaryColor(), fontWeight = FontWeight.Bold) },
         containerColor = cardBackgroundColor(),
         text = {
             LazyColumn(Modifier.heightIn(max = 420.dp)) {
                 items(languages) { code ->
-                    ListItem(
-                        headlineContent = { Text(languageName(code), color = textPrimaryColor()) },
-                        supportingContent = { Text(code.uppercase(), color = textMutedColor()) },
-                        trailingContent = { if (code == selectedCode) Icon(Icons.Default.Check, null, tint = AccentBlue) },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    val isSelected = code == selectedCode
+                    val itemBg = if (isSelected) AccentBlue.copy(alpha = 0.15f) else Color.Transparent
+                    val textColor = if (isSelected) AccentBlue else textPrimaryColor()
+                    
+                    Surface(
+                        color = itemBg,
+                        shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(vertical = 2.dp)
                             .clickable { onSelect(code) }
-                    )
-                    HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+                    ) {
+                        ListItem(
+                            headlineContent = { 
+                                Text(
+                                    languageName(code), 
+                                    color = textColor, 
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                ) 
+                            },
+                            supportingContent = { 
+                                Text(
+                                    code.uppercase(), 
+                                    color = if (isSelected) AccentBlue.copy(alpha = 0.8f) else textMutedColor()
+                                ) 
+                            },
+                            trailingContent = { 
+                                if (isSelected) {
+                                    Icon(Icons.Default.Check, "Seleccionado", tint = AccentBlue) 
+                                }
+                            },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                        )
+                    }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Cerrar", color = AccentBlue) } }
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Cerrar", color = AccentBlue, fontWeight = FontWeight.Bold) } }
     )
 }
 
