@@ -54,7 +54,7 @@ private fun topBarBackgroundColor() = MaterialTheme.colorScheme.surface
 private fun languageBarBackgroundColor() = if (androidx.compose.foundation.isSystemInDarkTheme()) Color(0xFF2C2C2E) else Color.Black
 
 @Composable
-private fun languageBarTextColor() = if (androidx.compose.foundation.isSystemInDarkTheme()) textPrimaryColor() else Color.White
+private fun languageBarTextColor() = Color.White
 
 @Composable
 private fun cardBackgroundColor() = MaterialTheme.colorScheme.surface
