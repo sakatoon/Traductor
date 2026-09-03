@@ -48,10 +48,13 @@ import java.util.Locale
 private fun appBackgroundColor() = MaterialTheme.colorScheme.background
 
 @Composable
-private fun topBarBackgroundColor() = if (MaterialTheme.colorScheme.background == Color(0xFF1E1E1E) || androidx.compose.foundation.isSystemInDarkTheme()) Color(0xFF252526) else MaterialTheme.colorScheme.surfaceVariant
+private fun topBarBackgroundColor() = MaterialTheme.colorScheme.surface
 
 @Composable
-private fun languageBarBackgroundColor() = if (MaterialTheme.colorScheme.background == Color(0xFF1E1E1E) || androidx.compose.foundation.isSystemInDarkTheme()) Color(0xFF2C2C2E) else MaterialTheme.colorScheme.surfaceVariant
+private fun languageBarBackgroundColor() = if (androidx.compose.foundation.isSystemInDarkTheme()) Color(0xFF2C2C2E) else Color.Black
+
+@Composable
+private fun languageBarTextColor() = if (androidx.compose.foundation.isSystemInDarkTheme()) textPrimaryColor() else Color.White
 
 @Composable
 private fun cardBackgroundColor() = MaterialTheme.colorScheme.surface
@@ -188,7 +191,7 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                     ) {
                         Text(
                             text = languageName(sourceLang),
-                            color = textPrimaryColor(),
+                            color = languageBarTextColor(),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
                             maxLines = 1,
@@ -203,7 +206,7 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                         Icon(
                             imageVector = Icons.Default.SwapHoriz,
                             contentDescription = "Intercambiar",
-                            tint = textMutedColor()
+                            tint = languageBarTextColor().copy(alpha = 0.7f)
                         )
                     }
 
@@ -216,7 +219,7 @@ fun MainScreen(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit
                     ) {
                         Text(
                             text = languageName(targetLang),
-                            color = textPrimaryColor(),
+                            color = languageBarTextColor(),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
                             maxLines = 1,
