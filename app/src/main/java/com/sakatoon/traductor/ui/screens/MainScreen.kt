@@ -468,14 +468,14 @@ private fun LanguagePickerDialog(title: String, selectedCode: String, onSelect: 
     val languages = remember { TranslateLanguage.getAllLanguages().sortedBy(::languageName) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title, color = TextWhite) },
-        containerColor = CardBackground,
+        title = { Text(title, color = textPrimaryColor()) },
+        containerColor = cardBackgroundColor(),
         text = {
             LazyColumn(Modifier.heightIn(max = 420.dp)) {
                 items(languages) { code ->
                     ListItem(
-                        headlineContent = { Text(languageName(code), color = TextWhite) },
-                        supportingContent = { Text(code.uppercase(), color = TextMuted) },
+                        headlineContent = { Text(languageName(code), color = textPrimaryColor()) },
+                        supportingContent = { Text(code.uppercase(), color = textMutedColor()) },
                         trailingContent = { if (code == selectedCode) Icon(Icons.Default.Check, null, tint = AccentBlue) },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                         modifier = Modifier
@@ -494,11 +494,11 @@ private fun LanguagePickerDialog(title: String, selectedCode: String, onSelect: 
 private fun WelcomeDialog(viewModel: TranslationViewModel, onNavigateToSettings: () -> Unit) = AlertDialog(
     onDismissRequest = viewModel::dismissFirstLaunchDialog,
     icon = { Icon(Icons.Default.Translate, null, tint = AccentBlue) },
-    title = { Text("Todo listo para traducir", color = TextWhite) },
-    text = { Text("Descarga los idiomas que necesites para traducir incluso sin conexión.", color = TextMuted) },
-    containerColor = CardBackground,
+    title = { Text("Todo listo para traducir", color = textPrimaryColor()) },
+    text = { Text("Descarga los idiomas que necesites para traducir incluso sin conexión.", color = textMutedColor()) },
+    containerColor = cardBackgroundColor(),
     confirmButton = { TextButton(onClick = { viewModel.dismissFirstLaunchDialog(); onNavigateToSettings() }) { Text("Descargar idiomas", color = AccentBlue) } },
-    dismissButton = { TextButton(onClick = viewModel::dismissFirstLaunchDialog) { Text("Más tarde", color = TextMuted) } }
+    dismissButton = { TextButton(onClick = viewModel::dismissFirstLaunchDialog) { Text("Más tarde", color = textMutedColor()) } }
 )
 
 internal fun languageName(code: String): String = Locale.forLanguageTag(code).getDisplayName(Locale.forLanguageTag("es")).replaceFirstChar { it.uppercase() }
